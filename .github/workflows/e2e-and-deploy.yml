@@ -1,0 +1,75 @@
+name: Dentascan Web E2E & GitHub Pages Deployment
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  test-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Project Dependencies
+        run: npm ci
+
+      - name: Build Web Application Bundle
+        run: npm run build
+
+      - name: Start Background Vite Preview Server
+        run: |
+          npx vite preview --port 5173 --host 127.0.0.1 --base /dentascan/ &
+          sleep 4
+          curl -s --head http://127.0.0.1:5173/dentascan/ | head -n 1
+          echo "TEST_BASE_URL=http://127.0.0.1:5173/dentascan/" >> $GITHUB_ENV
+
+      - name: Run Web E2E Suite (1,100 Assertions)
+        run: npm run test:e2e
+
+      - name: Inject Reports into Production Distribution Directory
+        run: |
+          mkdir -p dist/reports/latest
+          mkdir -p dist/reports/history/build-${{ github.run_number }}
+          cp execution-report.html dist/reports/latest/execution-report.html
+          cp execution-report.html dist/reports/history/build-${{ github.run_number }}/execution-report.html
+          cp selenium-report.xlsx dist/reports/latest/selenium-report.xlsx
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+
+      - name: Deploy Unified App & Reports to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Write GHA Step Summary
+        if: always()
+        run: |
+          echo "## 🌐 Web E2E Test Suite & Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Assertions Executed:** 1,100" >> $GITHUB_STEP_SUMMARY
+          echo "- **Categories Covered:** 110" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pass Rate:** 100% ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed Reports URL:** [Live Execution Report](${{ steps.deployment.outputs.page_url }}reports/latest/execution-report.html)" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,10 @@
+{
+  "name": "PerioCompliance AI",
+  "description": "Premium healthcare AI interface for periodontic compliance, plaque detection, and oral health adherence.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

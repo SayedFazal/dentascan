@@ -1,0 +1,5 @@
+[
+  { "minRate": 0.0, "maxRate": 0.3, "prob": 0.25, "risk": "High" },
+  { "minRate": 0.3, "maxRate": 0.6, "prob": 0.55, "risk": "Medium" },
+  { "minRate": 0.6, "maxRate": 1.0, "prob": 0.85, "risk": "Low" }
+]

@@ -1,0 +1,136 @@
+name: KisaanConnect E2E Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  selenium:
+    name: 🌐 Selenium — Website Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx vitest run tests/e2e/selenium_300.test.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selenium-300-report
+          path: selenium-300-report.xlsx
+
+  appium:
+    name: 📱 Appium — Android Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx vitest run tests/e2e/appium_300.test.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: appium-300-report
+          path: appium-300-report.xlsx
+
+  unit-tests:
+    name: 🧪 Unit Tests — API (300)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx vitest run tests/e2e/api_unit_300.test.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-api-300-report
+          path: unit-api-300-report.xlsx
+
+  validation:
+    name: ✅ Validation Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx vitest run tests/e2e/validation_300.test.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: validation-300-report
+          path: validation-300-report.xlsx
+
+  deployment-status:
+    name: 🚀 Deployment Status (300)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx vitest run tests/e2e/deployment_300.test.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deployment-300-report
+          path: deployment-300-report.xlsx
+
+  load-testing:
+    name: 📊 Load Testing — Performance (300)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx vitest run tests/e2e/load_testing_300.test.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: load-testing-300-report
+          path: load-testing-300-report.xlsx
+
+  compile-deploy:
+    name: 📊 Compile Master Report & Deploy
+    needs: [selenium, appium, unit-tests, validation, deployment-status, load-testing]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - run: node scripts/compileMasterReport.js
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+      - id: deployment
+        uses: actions/deploy-pages@v4
