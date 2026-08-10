@@ -11,7 +11,7 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "vitest run tests/e2e/mega_web_1100.test.ts",
-    "test:1800": "vitest run tests/e2e/*_300.test.ts",
+    "test:1800": "vitest run tests/e2e/selenium_300.test.ts tests/e2e/appium_300.test.ts tests/e2e/api_unit_300.test.ts tests/e2e/validation_300.test.ts tests/e2e/deployment_300.test.ts tests/e2e/load_testing_300.test.ts",
     "test:load": "k6 run scripts/load-test.js",
     "security:scan": "node scripts/generateWebSecuritySuite.js && node scripts/generateBackendSecuritySuite.js",
     "dataset:build": "tsx scripts/build-dataset-hashes.ts"
