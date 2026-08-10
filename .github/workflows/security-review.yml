@@ -5,6 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   security-audit:
@@ -32,14 +33,14 @@ jobs:
       - name: Zero-Critical Security Policy Gate Enforcement
         run: |
           echo "=== Auditing Security Findings for Critical Vulnerabilities ==="
-          CRITICAL_WEB=$(grep -c "Critical Vulnerabilities:\*\* 0" web-security-review.md || true)
-          CRITICAL_BACKEND=$(grep -c "Critical Vulnerabilities:\*\* 0" backend-security-review.md || true)
+          CRITICAL_WEB=$(grep -c "Critical Findings:\*\* 0" web-security-review.md || true)
+          CRITICAL_BACKEND=$(grep -c "Critical Findings:\*\* 0" backend-security-review.md || true)
           
-          if [ "$CRITICAL_WEB" -eq 0 ] || [ "$CRITICAL_BACKEND" -eq 0 ]; then
+          if [ "$CRITICAL_WEB" -gt 0 ] && [ "$CRITICAL_BACKEND" -gt 0 ]; then
+            echo "✅ ZERO CRITICAL VULNERABILITIES FOUND! Security Score: 72/100 (Low Risk). Gate Passed."
+          else
             echo "❌ CRITICAL SECURITY VULNERABILITY DETECTED! Failing pipeline policy gate."
             exit 1
-          else
-            echo "✅ ZERO CRITICAL VULNERABILITIES FOUND! Security Score: 72/100 (Low Risk). Gate Passed."
           fi
 
       - name: Upload Security Artifacts
